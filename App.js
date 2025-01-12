@@ -1,3 +1,4 @@
+import { GEMINI_API_KEY } from '@env';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
