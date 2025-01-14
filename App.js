@@ -524,15 +524,6 @@ const SelectionScreen = ({
     words.map((w) => ({ ...w, selected: true })),
   );
   const [isLoading, setIsLoading] = useState(false);
-  const [inputHeights, setInputHeights] = useState({});
-
-  const handleContentSizeChange = useCallback((index, field, event) => {
-    const contentHeight = event.nativeEvent.contentSize.height;
-    setInputHeights(prev => ({
-      ...prev,
-      [`${index}-${field}`]: Math.max(40, contentHeight + 10)
-    }));
-  }, []);
 
   const updateWord = useCallback((index, field, value) => {
     setSelectedWords((prev) =>
@@ -634,36 +625,22 @@ const SelectionScreen = ({
           </TouchableOpacity>
           <View style={styles.wordInputs}>
             <TextInput
-              style={[
-                styles.textInputMultiline,
-                {
-                  height: inputHeights[`${index}-translated`] || 40,
-                },
-              ]}
+              style={[styles.textInputMultiline]}
               value={word.translated}
               placeholder={t('Translation')}
               onChangeText={(text) => updateWord(index, 'translated', text)}
               multiline
+              numberOfLines={2}
               textAlignVertical="top"
-              onContentSizeChange={(e) =>
-                handleContentSizeChange(index, 'translated', e)
-              }
             />
             <TextInput
-              style={[
-                styles.textInputMultiline,
-                {
-                  height: inputHeights[`${index}-original`] || 40,
-                },
-              ]}
+              style={[styles.textInputMultiline]}
               value={word.original}
               placeholder={t('Original')}
               onChangeText={(text) => updateWord(index, 'original', text)}
               multiline
+              numberOfLines={2}
               textAlignVertical="top"
-              onContentSizeChange={(e) =>
-                handleContentSizeChange(index, 'original', e)
-              }
             />
           </View>
         </View>
