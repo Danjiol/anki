@@ -115,6 +115,7 @@ const sendRequestToApi = async (vocabulary, deckName) => {
       vocabulary: vocabObject,
     };
 
+    console.log('Sending request to proxy...');
     const response = await axios.post(
       '/.netlify/functions/anki-proxy',
       payload,
@@ -127,7 +128,21 @@ const sendRequestToApi = async (vocabulary, deckName) => {
       }
     );
 
+    console.log('Response received from proxy');
     if (response.data) {
+      // Check if we got an error response
+      try {
+        const textDecoder = new TextDecoder('utf-8');
+        const textData = textDecoder.decode(response.data);
+        const jsonData = JSON.parse(textData);
+        if (jsonData.error) {
+          throw new Error(jsonData.error);
+        }
+      } catch (e) {
+        // If we can't parse as JSON, it's probably the file data
+        console.log('Received binary data, creating download...');
+      }
+
       const blob = new Blob([response.data], { type: 'application/octet-stream' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -151,8 +166,12 @@ const sendRequestToApi = async (vocabulary, deckName) => {
         if (error.response.data instanceof ArrayBuffer) {
           const decoder = new TextDecoder('utf-8');
           const text = decoder.decode(error.response.data);
-          const errorData = JSON.parse(text);
-          errorMessage = errorData.error || errorData.message || 'Server error';
+          try {
+            const errorData = JSON.parse(text);
+            errorMessage = errorData.error || errorData.message || 'Server error';
+          } catch {
+            errorMessage = text;
+          }
         } else {
           errorMessage = error.response.data?.error || error.response.data?.message || 'Server error';
         }
@@ -183,6 +202,8 @@ const sendRequestToApi = async (vocabulary, deckName) => {
       errorMessage = 'Network error: Please try again later.';
     } else if (error.request) {
       errorMessage = 'No response received from the server. Please try again later.';
+    } else {
+      errorMessage = error.message;
     }
 
     throw new Error(errorMessage);
