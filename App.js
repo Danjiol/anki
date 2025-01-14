@@ -279,6 +279,14 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: '#fff',
+    ...Platform.select({
+      web: {
+        maxWidth: 800,
+        margin: '0 auto',
+        height: '100vh',
+        overflow: 'auto'
+      }
+    })
   },
   title: {
     fontSize: 24,
@@ -299,6 +307,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 10,
     height: 50,
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+        transition: 'opacity 0.2s',
+        ':hover': {
+          opacity: 0.8
+        }
+      }
+    })
   },
   buttonDisabled: {
     opacity: 0.5,
@@ -313,6 +330,12 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     padding: 10,
+    ...Platform.select({
+      web: {
+        maxWidth: 600,
+        margin: '0 auto'
+      }
+    })
   },
   languageButton: {
     width: '48%',
@@ -323,6 +346,16 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     height: 70,
     justifyContent: 'center',
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+        transition: 'all 0.2s',
+        ':hover': {
+          transform: 'translateY(-2px)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+        }
+      }
+    })
   },
   languageButtonText: {
     color: 'white',
@@ -344,6 +377,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 10,
     height: 60,
+    ...Platform.select({
+      web: {
+        maxWidth: 400,
+        margin: '10px auto',
+        cursor: 'pointer',
+        transition: 'transform 0.2s',
+        ':hover': {
+          transform: 'translateY(-2px)'
+        }
+      }
+    })
   },
   textInput: {
     borderWidth: 1,
@@ -353,18 +397,28 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     minHeight: 150,
     textAlignVertical: 'top',
+    ...Platform.select({
+      web: {
+        maxWidth: 600,
+        margin: '0 auto 20px',
+        fontSize: 16
+      }
+    })
   },
   fixedButtonContainer: {
     ...Platform.select({
       web: {
-        position: 'relative',
+        position: 'sticky',
         bottom: 0,
         left: 0,
         right: 0,
+        backgroundColor: '#fff',
         paddingVertical: 15,
         paddingHorizontal: 20,
         borderTopWidth: 1,
         borderTopColor: '#eee',
+        maxWidth: 600,
+        margin: '0 auto'
       }
     })
   },
@@ -376,6 +430,12 @@ const styles = StyleSheet.create({
   wordListPreview: {
     fontSize: 16,
     padding: 10,
+    ...Platform.select({
+      web: {
+        maxWidth: 600,
+        margin: '0 auto'
+      }
+    })
   },
   secondaryButton: {
     backgroundColor: '#f0f0f0',
@@ -384,6 +444,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 10,
     height: 50,
+    ...Platform.select({
+      web: {
+        maxWidth: 400,
+        margin: '10px auto',
+        cursor: 'pointer',
+        transition: 'background-color 0.2s',
+        ':hover': {
+          backgroundColor: '#e0e0e0'
+        }
+      }
+    })
   },
   secondaryButtonText: {
     color: '#333',
@@ -394,6 +465,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
+    ...Platform.select({
+      web: {
+        maxWidth: 600,
+        margin: '0 auto 10px'
+      }
+    })
   },
   wordInputs: {
     marginLeft: 10,
@@ -406,6 +483,12 @@ const styles = StyleSheet.create({
     padding: 8,
     marginBottom: 5,
     fontSize: 16,
+    ...Platform.select({
+      web: {
+        minHeight: 40,
+        resize: 'vertical'
+      }
+    })
   },
   answer: {
     fontSize: 16,
@@ -414,7 +497,30 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: '#f5f5f5',
     borderRadius: 8,
+    ...Platform.select({
+      web: {
+        maxWidth: 600,
+        margin: '20px auto',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+      }
+    })
   },
+  scrollContainer: {
+    flex: 1,
+    ...Platform.select({
+      web: {
+        maxHeight: 'calc(100vh - 200px)',
+        overflow: 'auto'
+      }
+    })
+  },
+  scrollContent: {
+    ...Platform.select({
+      web: {
+        padding: '20px 0'
+      }
+    })
+  }
 });
 
 // UI Components
