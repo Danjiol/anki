@@ -526,26 +526,27 @@ const SelectionScreen = ({
   const [isLoading, setIsLoading] = useState(false);
   const [inputHeights, setInputHeights] = useState({});
 
-  const handleContentSizeChange = (index, field, contentHeight) => {
+  const handleContentSizeChange = useCallback((index, field, event) => {
+    const contentHeight = event.nativeEvent.contentSize.height;
     setInputHeights(prev => ({
       ...prev,
       [`${index}-${field}`]: Math.max(40, contentHeight + 10)
     }));
-  };
+  }, []);
 
-  const updateWord = (index, field, value) => {
+  const updateWord = useCallback((index, field, value) => {
     setSelectedWords((prev) =>
       prev.map((word, i) => (i === index ? { ...word, [field]: value } : word)),
     );
-  };
+  }, []);
 
-  const toggleWord = (index) => {
+  const toggleWord = useCallback((index) => {
     setSelectedWords((prev) =>
       prev.map((word, i) =>
         i === index ? { ...word, selected: !word.selected } : word,
       ),
     );
-  };
+  }, []);
 
   const handleSubmit = async () => {
     setIsLoading(true);
@@ -645,11 +646,7 @@ const SelectionScreen = ({
               multiline
               textAlignVertical="top"
               onContentSizeChange={(e) =>
-                handleContentSizeChange(
-                  index,
-                  'translated',
-                  e.nativeEvent.contentSize.height,
-                )
+                handleContentSizeChange(index, 'translated', e)
               }
             />
             <TextInput
@@ -665,11 +662,7 @@ const SelectionScreen = ({
               multiline
               textAlignVertical="top"
               onContentSizeChange={(e) =>
-                handleContentSizeChange(
-                  index,
-                  'original',
-                  e.nativeEvent.contentSize.height,
-                )
+                handleContentSizeChange(index, 'original', e)
               }
             />
           </View>
