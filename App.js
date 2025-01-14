@@ -115,35 +115,54 @@ const sendRequestToApi = async (vocabulary, deckName) => {
       vocabulary: vocabObject,
     };
 
-    // Use a more reliable CORS proxy
-    const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
-    const API_URL = encodeURIComponent('https://dianjeol.pythonanywhere.com/api/convert-direct');
-    
-    const response = await axios.post(
-      `${CORS_PROXY}${API_URL}`,
-      payload,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-        responseType: 'arraybuffer', // Changed from blob to arraybuffer for better compatibility
-        timeout: 30000,
+    // List of CORS proxies to try
+    const CORS_PROXIES = [
+      'https://api.allorigins.win/raw?url=',
+      'https://corsproxy.io/?',
+      'https://cors.bridged.cc/'
+    ];
+
+    let lastError = null;
+    for (const proxy of CORS_PROXIES) {
+      try {
+        const API_URL = encodeURIComponent('https://dianjeol.pythonanywhere.com/api/convert-direct');
+        const response = await axios.post(
+          `${proxy}${API_URL}`,
+          payload,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+            responseType: 'arraybuffer',
+            timeout: 30000,
+          }
+        );
+
+        // Check if we got a valid response
+        if (response.data && response.data.byteLength > 0) {
+          // Create a download link and trigger download
+          const blob = new Blob([response.data], { type: 'application/octet-stream' });
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', `${deckName || 'Anki-Cards'}.apkg`);
+          document.body.appendChild(link);
+          link.click();
+          link.parentNode.removeChild(link);
+          window.URL.revokeObjectURL(url);
+
+          return { success: true };
+        }
+      } catch (proxyError) {
+        console.warn(`CORS proxy ${proxy} failed:`, proxyError);
+        lastError = proxyError;
+        continue; // Try next proxy
       }
-    );
+    }
 
-    // Create a download link and trigger download
-    const blob = new Blob([response.data], { type: 'application/octet-stream' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `${deckName || 'Anki-Cards'}.apkg`);
-    document.body.appendChild(link);
-    link.click();
-    link.parentNode.removeChild(link);
-    window.URL.revokeObjectURL(url);
-
-    return { success: true };
+    // If we get here, all proxies failed
+    throw lastError || new Error('All CORS proxies failed');
   } catch (error) {
     console.error('API request error:', error);
     let errorMessage = 'An unexpected error occurred.';
