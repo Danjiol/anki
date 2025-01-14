@@ -1,6 +1,6 @@
 {
-  "short_name": "Ihre App",
-  "name": "Ihr vollständiger App Name",
+  "short_name": "Anki Vocabulary",
+  "name": "Anki Vocabulary Builder",
   "icons": [
     {
       "src": "favicon.ico",
