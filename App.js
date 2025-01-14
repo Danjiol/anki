@@ -115,22 +115,26 @@ const sendRequestToApi = async (vocabulary, deckName) => {
       vocabulary: vocabObject,
     };
 
-    const API_URL = 'https://dianjeol.pythonanywhere.com/api/convert-direct';
+    // Use a more reliable CORS proxy
+    const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+    const API_URL = encodeURIComponent('https://dianjeol.pythonanywhere.com/api/convert-direct');
     
     const response = await axios.post(
-      API_URL,
+      `${CORS_PROXY}${API_URL}`,
       payload,
       {
         headers: {
           'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
         },
-        responseType: 'blob', // Set response type to blob for file download
+        responseType: 'arraybuffer', // Changed from blob to arraybuffer for better compatibility
         timeout: 30000,
       }
     );
 
     // Create a download link and trigger download
-    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const blob = new Blob([response.data], { type: 'application/octet-stream' });
+    const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.setAttribute('download', `${deckName || 'Anki-Cards'}.apkg`);
@@ -145,28 +149,34 @@ const sendRequestToApi = async (vocabulary, deckName) => {
     let errorMessage = 'An unexpected error occurred.';
 
     if (error.response) {
-      switch (error.response.status) {
-        case 400:
-          errorMessage = 'Bad Request: Please check the provided vocabulary.';
-          break;
-        case 413:
-          errorMessage = 'The vocabulary list is too large.';
-          break;
-        case 429:
-          errorMessage = 'Too many requests. Please wait and try again.';
-          break;
-        case 500:
-          errorMessage = 'The server encountered an error. Please try again later.';
-          break;
-        default:
-          errorMessage = `Server Error (${error.response.status}): ${error.response.data?.message || 'Unknown error'}`;
+      // Try to parse error message if it's JSON
+      try {
+        const errorData = JSON.parse(new TextDecoder().decode(error.response.data));
+        errorMessage = errorData.error || errorData.message || 'Server error';
+      } catch {
+        switch (error.response.status) {
+          case 400:
+            errorMessage = 'Bad Request: Please check the provided vocabulary.';
+            break;
+          case 413:
+            errorMessage = 'The vocabulary list is too large.';
+            break;
+          case 429:
+            errorMessage = 'Too many requests. Please wait and try again.';
+            break;
+          case 500:
+            errorMessage = 'The server encountered an error. Please try again later.';
+            break;
+          default:
+            errorMessage = `Server Error (${error.response.status})`;
+        }
       }
     } else if (error.code === 'ECONNABORTED') {
       errorMessage = 'The request timed out. Please try again.';
     } else if (error.code === 'ERR_NETWORK') {
-      errorMessage = 'Network error: Please check your internet connection and try again.';
+      errorMessage = 'Network error: The server might be down or blocked by CORS policy. Please try again later.';
     } else if (error.request) {
-      errorMessage = 'No response received from the server. This might be due to CORS restrictions.';
+      errorMessage = 'No response received from the server. Please try again later.';
     }
 
     throw new Error(errorMessage);
