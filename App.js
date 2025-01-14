@@ -115,22 +115,31 @@ const sendRequestToApi = async (vocabulary, deckName) => {
       vocabulary: vocabObject,
     };
 
+    const API_URL = 'https://dianjeol.pythonanywhere.com/api/convert-direct';
+    
     const response = await axios.post(
-      'https://dianjeol.pythonanywhere.com/api/convert-direct',
+      API_URL,
       payload,
       {
         headers: {
           'Content-Type': 'application/json',
         },
+        responseType: 'blob', // Set response type to blob for file download
         timeout: 30000,
       }
     );
 
-    if (!response.data || !response.data.success) {
-      throw new Error(response.data?.message || 'Invalid API response');
-    }
+    // Create a download link and trigger download
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `${deckName || 'Anki-Cards'}.apkg`);
+    document.body.appendChild(link);
+    link.click();
+    link.parentNode.removeChild(link);
+    window.URL.revokeObjectURL(url);
 
-    return response.data;
+    return { success: true };
   } catch (error) {
     console.error('API request error:', error);
     let errorMessage = 'An unexpected error occurred.';
@@ -154,8 +163,10 @@ const sendRequestToApi = async (vocabulary, deckName) => {
       }
     } else if (error.code === 'ECONNABORTED') {
       errorMessage = 'The request timed out. Please try again.';
+    } else if (error.code === 'ERR_NETWORK') {
+      errorMessage = 'Network error: Please check your internet connection and try again.';
     } else if (error.request) {
-      errorMessage = 'No response received from the server.';
+      errorMessage = 'No response received from the server. This might be due to CORS restrictions.';
     }
 
     throw new Error(errorMessage);
@@ -556,54 +567,15 @@ const SelectionScreen = ({
       const result = await sendRequestToApi(finalWords, deckName);
       console.log('API response received');
 
-      if (result.download_url) {
-        onSubmit(result.download_url);
-        Alert.alert(t('Success!'), t('Your Anki deck is ready!'));
+      if (result.success) {
+        Alert.alert(t('Success!'), t('Your Anki deck has been downloaded!'));
+        onSubmit(null); // No need for download URL anymore
       } else {
-        throw new Error('Invalid API response: Missing download URL');
+        throw new Error('Failed to generate Anki deck');
       }
     } catch (error) {
       console.error('Error creating Anki deck:', error);
-      let errorMessage = t('An unexpected error has occurred.');
-
-      if (error.code === 'ECONNABORTED') {
-        errorMessage = t(
-          'The connection to the server was interrupted. Please check your internet connection and try again.',
-        );
-      } else if (error.response) {
-        switch (error.response.status) {
-          case 400:
-            errorMessage = t(
-              'Bad Request: Please check the format of the selected words.',
-            );
-            break;
-          case 413:
-            errorMessage = t(
-              'The file is too large. Please reduce the number of selected words.',
-            );
-            break;
-          case 429:
-            errorMessage = t(
-              'Too many requests. Please wait a moment and try again.',
-            );
-            break;
-          case 500:
-            errorMessage = t(
-              'The server could not process your request. Please try again later.',
-            );
-            break;
-          default:
-            errorMessage = t(
-              `Error communicating with the server (Status: ${error.response.status}).`,
-            );
-        }
-      } else if (error.request) {
-        errorMessage = t(
-          'No response received from the server. Please check your internet connection.',
-        );
-      }
-
-      Alert.alert(t('Error'), errorMessage);
+      Alert.alert(t('Error'), error.message);
     } finally {
       setProcessing('');
       setIsLoading(false);
@@ -659,7 +631,7 @@ const SelectionScreen = ({
             selectedWords.filter((w) => w.selected).length === 0 || isLoading
           }
         >
-          <Text style={styles.buttonText}>{t('Next')}</Text>
+          <Text style={styles.buttonText}>{t('Create Deck')}</Text>
         </TouchableOpacity>
       )}
     </ScrollView>
