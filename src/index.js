@@ -1,18 +1,17 @@
-// Ihre App-Initialisierung (z.B. React.render oder ähnliches)
-// ...
+// Ihre React-Imports und App-Initialisierung hier...
 
-// Service Worker erst danach registrieren
+// Kommentieren Sie die Service Worker-Registrierung aus
+/*
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    setTimeout(() => { // Kleiner Delay zur Sicherheit
-      navigator.serviceWorker
-        .register("/serviceWorker.js")
-        .then((registration) => {
-          console.log("ServiceWorker registration successful");
-        })
-        .catch((err) => {
-          console.log("ServiceWorker registration failed: ", err);
-        });
-    }, 1000);
+    navigator.serviceWorker
+      .register("/serviceWorker.js")
+      .then((registration) => {
+        console.log("ServiceWorker registration successful");
+      })
+      .catch((err) => {
+        console.log("ServiceWorker registration failed: ", err);
+      });
   });
-} 
+}
+*/ 

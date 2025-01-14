@@ -2,9 +2,8 @@ const CACHE_NAME = "v1";
 const urlsToCache = [
   "/",
   "/index.html",
+  new RegExp('/static/.*'),
   "/manifest.json",
-  "/static/js/main.js",
-  "/static/css/main.css",
   "/favicon.ico",
   "/logo192.png",
   "/logo512.png"
@@ -21,15 +20,6 @@ self.addEventListener("install", (event) => {
 self.addEventListener("fetch", (event) => {
   event.respondWith(
     fetch(event.request)
-      .then((response) => {
-        const responseClone = response.clone();
-        
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseClone);
-        });
-
-        return response;
-      })
       .catch(() => {
         return caches.match(event.request);
       })
