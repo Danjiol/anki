@@ -115,9 +115,41 @@ const sendRequestToApi = async (vocabulary, deckName) => {
       vocabulary: vocabObject,
     };
 
-    // List of CORS proxies to try
+    // Try direct request first
+    try {
+      const API_URL = 'https://dianjeol.pythonanywhere.com/api/convert-direct';
+      const response = await axios.post(
+        API_URL,
+        payload,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          responseType: 'arraybuffer',
+          timeout: 30000,
+        }
+      );
+
+      if (response.data && response.data.byteLength > 0) {
+        const blob = new Blob([response.data], { type: 'application/octet-stream' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `${deckName || 'Anki-Cards'}.apkg`);
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        return { success: true };
+      }
+    } catch (directError) {
+      console.warn('Direct request failed, trying proxies:', directError);
+    }
+
+    // If direct request fails, try proxies
     const CORS_PROXIES = [
-      'https://api.allorigins.win/raw?url=',
+      'https://api.allorigins.win/post?url=',
       'https://corsproxy.io/?',
       'https://cors.bridged.cc/'
     ];
@@ -126,33 +158,67 @@ const sendRequestToApi = async (vocabulary, deckName) => {
     for (const proxy of CORS_PROXIES) {
       try {
         const API_URL = encodeURIComponent('https://dianjeol.pythonanywhere.com/api/convert-direct');
-        const response = await axios.post(
-          `${proxy}${API_URL}`,
-          payload,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Requested-With': 'XMLHttpRequest',
+        let proxyUrl = `${proxy}${API_URL}`;
+        
+        // Special handling for allorigins.win
+        if (proxy.includes('allorigins.win')) {
+          const response = await axios.post(
+            proxyUrl,
+            {
+              data: JSON.stringify(payload),
+              contentType: 'application/json',
             },
-            responseType: 'arraybuffer',
-            timeout: 30000,
+            {
+              responseType: 'json',
+              timeout: 30000,
+            }
+          );
+
+          if (response.data && response.data.contents) {
+            const binaryData = atob(response.data.contents);
+            const bytes = new Uint8Array(binaryData.length);
+            for (let i = 0; i < binaryData.length; i++) {
+              bytes[i] = binaryData.charCodeAt(i);
+            }
+            const blob = new Blob([bytes], { type: 'application/octet-stream' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${deckName || 'Anki-Cards'}.apkg`);
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            return { success: true };
           }
-        );
+        } else {
+          // For other proxies
+          const response = await axios.post(
+            proxyUrl,
+            payload,
+            {
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              responseType: 'arraybuffer',
+              timeout: 30000,
+            }
+          );
 
-        // Check if we got a valid response
-        if (response.data && response.data.byteLength > 0) {
-          // Create a download link and trigger download
-          const blob = new Blob([response.data], { type: 'application/octet-stream' });
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.setAttribute('download', `${deckName || 'Anki-Cards'}.apkg`);
-          document.body.appendChild(link);
-          link.click();
-          link.parentNode.removeChild(link);
-          window.URL.revokeObjectURL(url);
+          if (response.data && response.data.byteLength > 0) {
+            const blob = new Blob([response.data], { type: 'application/octet-stream' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${deckName || 'Anki-Cards'}.apkg`);
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode.removeChild(link);
+            window.URL.revokeObjectURL(url);
 
-          return { success: true };
+            return { success: true };
+          }
         }
       } catch (proxyError) {
         console.warn(`CORS proxy ${proxy} failed:`, proxyError);
@@ -161,8 +227,8 @@ const sendRequestToApi = async (vocabulary, deckName) => {
       }
     }
 
-    // If we get here, all proxies failed
-    throw lastError || new Error('All CORS proxies failed');
+    // If we get here, all attempts failed
+    throw lastError || new Error('All requests failed');
   } catch (error) {
     console.error('API request error:', error);
     let errorMessage = 'An unexpected error occurred.';
@@ -170,8 +236,14 @@ const sendRequestToApi = async (vocabulary, deckName) => {
     if (error.response) {
       // Try to parse error message if it's JSON
       try {
-        const errorData = JSON.parse(new TextDecoder().decode(error.response.data));
-        errorMessage = errorData.error || errorData.message || 'Server error';
+        if (error.response.data instanceof ArrayBuffer) {
+          const decoder = new TextDecoder('utf-8');
+          const text = decoder.decode(error.response.data);
+          const errorData = JSON.parse(text);
+          errorMessage = errorData.error || errorData.message || 'Server error';
+        } else {
+          errorMessage = error.response.data?.error || error.response.data?.message || 'Server error';
+        }
       } catch {
         switch (error.response.status) {
           case 400:
@@ -179,6 +251,9 @@ const sendRequestToApi = async (vocabulary, deckName) => {
             break;
           case 413:
             errorMessage = 'The vocabulary list is too large.';
+            break;
+          case 415:
+            errorMessage = 'Invalid content type. Please try again.';
             break;
           case 429:
             errorMessage = 'Too many requests. Please wait and try again.';
