@@ -1,7 +1,15 @@
-// Ihre React-Imports und App-Initialisierung hier...
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
 
-// Kommentieren Sie die Service Worker-Registrierung aus
-/*
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+// Service Worker wieder aktivieren
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
@@ -13,5 +21,4 @@ if ("serviceWorker" in navigator) {
         console.log("ServiceWorker registration failed: ", err);
       });
   });
-}
-*/ 
+} 
