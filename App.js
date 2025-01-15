@@ -15,6 +15,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
+import { languages, translations, getTranslation } from './translations';
 
 // Utility function to convert image to Base64
 const imageToBase64 = async (uri) => {
@@ -208,64 +209,6 @@ const sendRequestToApi = async (vocabulary, deckName) => {
 
     throw new Error(errorMessage);
   }
-};
-
-// Language data
-const languages = [
-  { code: 'ar', name: 'العربية', flag: '🇸🇦' },
-  { code: 'am', name: 'አማርኛ', flag: '🇪🇹' },
-  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-  { code: 'fa-AF', name: 'دری', flag: '🇦🇫' },
-  { code: 'en', name: 'English', flag: '🇬🇧' },
-  { code: 'es', name: 'Español', flag: '🇪🇸' },
-  { code: 'fr', name: 'Français', flag: '🇫🇷' },
-  { code: 'it', name: 'Italiano', flag: '🇮🇹' },
-  { code: 'ka', name: 'ქართული', flag: '🇬🇪' },
-  { code: 'ku', name: 'Kurdî', flag: '🏳️' },
-  { code: 'pt', name: 'Português', flag: '🇵🇹' },
-  { code: 'so', name: 'Soomaali', flag: '🇸🇴' },
-  { code: 'ti', name: 'ትግርኛ', flag: '🇪🇷' },
-  { code: 'tr', name: 'Türkçe', flag: '🇹🇷' },
-  { code: 'uk', name: 'Українська', flag: '🇺🇦' },
-  { code: 'zh', name: '中文', flag: '🇨🇳' },
-].sort((a, b) => a.name.localeCompare(b.name));
-
-// Translations for UI text
-const translations = {
-  en: {
-    'Vocabulary Card Creator': 'Vocabulary Card Creator',
-    'Create Anki flashcards from text or images': 'Create Anki flashcards from text or images',
-    'Get Started': 'Get Started',
-    'Select Target Language': 'Select Target Language',
-    'Choose Input Method': 'Choose Input Method',
-    'Upload Image': 'Upload Image',
-    'Enter Text': 'Enter Text',
-    'Paste your text here...': 'Paste your text here...',
-    'Create Flashcards': 'Create Flashcards',
-    'Select Words': 'Select Words',
-    'Success!': 'Success!',
-    'Your Anki deck is ready': 'Your Anki deck is ready',
-    'Download .apkg file': 'Download .apkg file',
-    'Create new deck': 'Create new deck',
-    'Take Photo': 'Take Photo',
-  },
-  de: {
-    'Vocabulary Card Creator': 'Vokabelkarten-Ersteller',
-    'Create Anki flashcards from text or images': 'Erstelle Anki-Karten aus Text oder Bildern',
-    'Get Started': 'Loslegen',
-    'Select Target Language': 'Zielsprache auswählen',
-    'Choose Input Method': 'Eingabemethode wählen',
-    'Upload Image': 'Bild hochladen',
-    'Enter Text': 'Text eingeben',
-    'Paste your text here...': 'Füge deinen Text hier ein...',
-    'Create Flashcards': 'Karteikarten erstellen',
-    'Select Words': 'Wörter auswählen',
-    'Success!': 'Erfolg!',
-    'Your Anki deck is ready': 'Dein Anki-Deck ist fertig',
-    'Download .apkg file': '.apkg-Datei herunterladen',
-    'Create new deck': 'Neues Deck erstellen',
-    'Take Photo': 'Foto aufnehmen',
-  },
 };
 
 const styles = StyleSheet.create({
@@ -519,8 +462,7 @@ const styles = StyleSheet.create({
 
 // UI Components
 const WelcomeScreen = ({ onNext, selectedLanguage }) => {
-  const t = (text) =>
-    translations[selectedLanguage?.code || 'en']?.[text] || text;
+  const t = (text) => getTranslation(selectedLanguage, text);
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{t('Vocabulary Card Creator')}</Text>
@@ -535,8 +477,7 @@ const WelcomeScreen = ({ onNext, selectedLanguage }) => {
 };
 
 const LanguageScreen = ({ onSelectLanguage, selectedLanguage }) => {
-  const t = (text) =>
-    translations[selectedLanguage?.code || 'en']?.[text] || text;
+  const t = (text) => getTranslation(selectedLanguage, text);
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>{t('Select Target Language')}</Text>
@@ -548,7 +489,7 @@ const LanguageScreen = ({ onSelectLanguage, selectedLanguage }) => {
             onPress={() => onSelectLanguage(lang)}
           >
             <Text style={styles.languageFlag}>{lang.flag}</Text>
-            <Text style={styles.languageButtonText}>{t(lang.name)}</Text>
+            <Text style={styles.languageButtonText}>{lang.name}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -557,8 +498,7 @@ const LanguageScreen = ({ onSelectLanguage, selectedLanguage }) => {
 };
 
 const InputScreen = ({ onImageUpload, onTakePhoto, onTextInput, selectedLanguage }) => {
-  const t = (text) =>
-    translations[selectedLanguage?.code || 'en']?.[text] || text;
+  const t = (text) => getTranslation(selectedLanguage, text);
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{t('Choose Input Method')}</Text>
@@ -579,8 +519,7 @@ const InputScreen = ({ onImageUpload, onTakePhoto, onTextInput, selectedLanguage
 };
 
 const TextInputScreen = ({ onSubmit, selectedLanguage }) => {
-  const t = (text) =>
-    translations[selectedLanguage?.code || 'en']?.[text] || text;
+  const t = (text) => getTranslation(selectedLanguage, text);
   const [text, setText] = useState('');
 
   return (
@@ -612,8 +551,7 @@ const TextInputScreen = ({ onSubmit, selectedLanguage }) => {
 };
 
 const ProcessingScreen = ({ progress, selectedLanguage }) => {
-  const t = (text) =>
-    translations[selectedLanguage?.code || 'en']?.[text] || text;
+  const t = (text) => getTranslation(selectedLanguage, text);
   return (
     <View style={styles.container}>
       <ActivityIndicator size="large" color="#007AFF" />
@@ -623,8 +561,7 @@ const ProcessingScreen = ({ progress, selectedLanguage }) => {
 };
 
 const PreviewScreen = ({ wordList, onConfirm, onBack, selectedLanguage }) => {
-  const t = (text) =>
-    translations[selectedLanguage?.code || 'en']?.[text] || text;
+  const t = (text) => getTranslation(selectedLanguage, text);
 
   return (
     <View style={styles.container}>
@@ -654,8 +591,7 @@ const SelectionScreen = ({
   deckName,
   selectedLanguage,
 }) => {
-  const t = (text) =>
-    translations[selectedLanguage?.code || 'en']?.[text] || text;
+  const t = (text) => getTranslation(selectedLanguage, text);
   const [selectedWords, setSelectedWords] = useState(
     words.map((w) => ({ ...w, selected: true })),
   );
@@ -764,8 +700,7 @@ const SelectionScreen = ({
 };
 
 const ResultScreen = ({ downloadUrl, onReset, selectedLanguage }) => {
-  const t = (text) =>
-    translations[selectedLanguage?.code || 'en']?.[text] || text;
+  const t = (text) => getTranslation(selectedLanguage, text);
 
   const handleDownload = () => {
     if (Platform.OS === 'web') {
@@ -796,8 +731,7 @@ const ResultScreen = ({ downloadUrl, onReset, selectedLanguage }) => {
 };
 
 const DeckTypeScreen = ({ onSelectType, content, selectedLanguage }) => {
-  const t = (text) =>
-    translations[selectedLanguage?.code || 'en']?.[text] || text;
+  const t = (text) => getTranslation(selectedLanguage, text);
 
   const handleVocabulary = () => {
     onSelectType('vocabulary', content);
