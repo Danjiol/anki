@@ -11,7 +11,7 @@ const languageData = [
   { code: 'ka', name: 'ქართული', englishName: 'Georgian', flag: '🇬🇪' },
   { code: 'hi', name: 'हिन्दी', englishName: 'Hindi', flag: '🇮🇳' },
   { code: 'it', name: 'Italiano', englishName: 'Italian', flag: '🇮🇹' },
-  { code: 'ku', name: 'Kurdî', englishName: 'Kurdish', flag: '🟢🟡' },
+  { code: 'ku', name: 'Kurdî', englishName: 'Kurdish', flag: '🟢' },
   { code: 'pt', name: 'Português', englishName: 'Portuguese', flag: '🇵🇹' },
   { code: 'so', name: 'Soomaali', englishName: 'Somali', flag: '🇸🇴' },
   { code: 'ti', name: 'ትግርኛ', englishName: 'Tigrinya', flag: '🇪🇷' },
