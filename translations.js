@@ -1,24 +1,29 @@
-// Language data
-export const languages = [
-  { code: 'am', name: 'አማርኛ', flag: '🇪🇹' },
-  { code: 'ar', name: 'العربية', flag: '🇸🇦' },
-  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-  { code: 'en', name: 'English', flag: '🇬🇧' },
-  { code: 'es', name: 'Español', flag: '🇪🇸' },
-  { code: 'fa-AF', name: 'دری', flag: '🇦🇫' },
-  { code: 'fr', name: 'Français', flag: '🇫🇷' },
-  { code: 'hi', name: 'हिन्दी', flag: '🇮🇳' },
-  { code: 'it', name: 'Italiano', flag: '🇮🇹' },
-  { code: 'ka', name: 'ქართული', flag: '🇬🇪' },
-  { code: 'ku', name: 'Kurdî', flag: '🏳️' },
-  { code: 'pt', name: 'Português', flag: '🇵🇹' },
-  { code: 'so', name: 'Soomaali', flag: '🇸🇴' },
-  { code: 'ti', name: 'ትግርኛ', flag: '🇪🇷' },
-  { code: 'tr', name: 'Türkçe', flag: '🇹🇷' },
-  { code: 'uk', name: 'Українська', flag: '🇺🇦' },
-  { code: 'yi', name: 'ئێزیدی', flag: '🏳️' },
-  { code: 'zh', name: '中文', flag: '🇨🇳' },
-].sort((a, b) => a.name.localeCompare(b.name));
+// Language data with English names for sorting
+const languageData = [
+  { code: 'am', name: 'አማርኛ', englishName: 'Amharic', flag: '🇪🇹' },
+  { code: 'ar', name: 'العربية', englishName: 'Arabic', flag: '🇸🇦' },
+  { code: 'fa-AF', name: 'دری', englishName: 'Dari', flag: '🇦🇫' },
+  { code: 'de', name: 'Deutsch', englishName: 'German', flag: '🇩🇪' },
+  { code: 'en', name: 'English', englishName: 'English', flag: '🇬🇧' },
+  { code: 'fr', name: 'Français', englishName: 'French', flag: '🇫🇷' },
+  { code: 'ka', name: 'ქართული', englishName: 'Georgian', flag: '🇬🇪' },
+  { code: 'hi', name: 'हिन्दी', englishName: 'Hindi', flag: '🇮🇳' },
+  { code: 'it', name: 'Italiano', englishName: 'Italian', flag: '🇮🇹' },
+  { code: 'ku', name: 'Kurdî', englishName: 'Kurdish', flag: '🏳️' },
+  { code: 'pt', name: 'Português', englishName: 'Portuguese', flag: '🇵🇹' },
+  { code: 'so', name: 'Soomaali', englishName: 'Somali', flag: '🇸🇴' },
+  { code: 'es', name: 'Español', englishName: 'Spanish', flag: '🇪🇸' },
+  { code: 'ti', name: 'ትግርኛ', englishName: 'Tigrinya', flag: '🇪🇷' },
+  { code: 'tr', name: 'Türkçe', englishName: 'Turkish', flag: '🇹🇷' },
+  { code: 'uk', name: 'Українська', englishName: 'Ukrainian', flag: '🇺🇦' },
+  { code: 'yi', name: 'ئێزیدی', englishName: 'Yezidi', flag: '🔴' },
+  { code: 'zh', name: '中文', englishName: 'Chinese', flag: '🇨🇳' },
+];
+
+// Export sorted languages based on English names
+export const languages = languageData
+  .sort((a, b) => a.englishName.localeCompare(b.englishName))
+  .map(({ code, name, flag }) => ({ code, name, flag }));
 
 // Translations for UI text
 export const translations = {
@@ -528,7 +533,7 @@ export const translations = {
     'Could not take photo': 'ፎቶ ማንሳት አልተቻለም። እባክዎ እንደገና ይሞክሩ።',
     'Could not upload image': 'ምስሉን መጫን አልተቻለም። እባክዎ እንደገና ይሞክሩ።',
     'Image processing failed': 'የምስል ሂደት አልተሳካም። እባክዎ እንደገና ይሞክሩ።',
-    'Bad Request': 'ልክ ያልሆነ ጥያቄ፡ እባክዎ የቀረበውን ቃላት ያረጋግጡ።',
+    'Bad Request': 'ልክ ያልሆነ ጥያቄ፡ እባክዎ የቀረበውን ቃላት ያረጋግጹ።',
     'List too large': 'የቃላት ዝርዝሩ በጣም ትልቅ ነው።',
     'Invalid content type': 'ልክ ያልሆነ የይዘት አይነት። እባክዎ እንደገና ይሞክሩ።',
     'Too many requests': 'በጣም ብዙ ጥያቄዎች። እባክዎ ይጠብቁ እና እንደገና ይሞክሩ።',
