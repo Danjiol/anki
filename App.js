@@ -169,40 +169,40 @@ const sendRequestToApi = async (vocabulary, deckName) => {
           const text = decoder.decode(error.response.data);
           try {
             const errorData = JSON.parse(text);
-            errorMessage = errorData.error || errorData.message || 'Server error';
+            errorMessage = errorData.error || errorData.message || t('Server error');
           } catch {
             errorMessage = text;
           }
         } else {
-          errorMessage = error.response.data?.error || error.response.data?.message || 'Server error';
+          errorMessage = error.response.data?.error || error.response.data?.message || t('Server error');
         }
       } catch {
         switch (error.response.status) {
           case 400:
-            errorMessage = 'Bad Request: Please check the provided vocabulary.';
+            errorMessage = t('Bad Request');
             break;
           case 413:
-            errorMessage = 'The vocabulary list is too large.';
+            errorMessage = t('List too large');
             break;
           case 415:
-            errorMessage = 'Invalid content type. Please try again.';
+            errorMessage = t('Invalid content type');
             break;
           case 429:
-            errorMessage = 'Too many requests. Please wait and try again.';
+            errorMessage = t('Too many requests');
             break;
           case 500:
-            errorMessage = 'The server encountered an error. Please try again later.';
+            errorMessage = t('Server error');
             break;
           default:
-            errorMessage = `Server Error (${error.response.status})`;
+            errorMessage = `${t('Server error')} (${error.response.status})`;
         }
       }
     } else if (error.code === 'ECONNABORTED') {
-      errorMessage = 'The request timed out. Please try again.';
+      errorMessage = t('Request timeout');
     } else if (error.code === 'ERR_NETWORK') {
-      errorMessage = 'Network error: Please try again later.';
+      errorMessage = t('Network error');
     } else if (error.request) {
-      errorMessage = 'No response received from the server. Please try again later.';
+      errorMessage = t('No server response');
     } else {
       errorMessage = error.message;
     }
@@ -457,7 +457,63 @@ const styles = StyleSheet.create({
         padding: '20px 0'
       }
     })
-  }
+  },
+  resultContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 30,
+  },
+  successIconContainer: {
+    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+    borderRadius: 50,
+    padding: 20,
+    marginBottom: 20,
+  },
+  resultTitle: {
+    fontSize: 32,
+    color: '#4CAF50',
+    marginBottom: 10,
+  },
+  resultSubtitle: {
+    fontSize: 18,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 40,
+    lineHeight: 24,
+  },
+  newDeckButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 30,
+    paddingVertical: 15,
+    borderRadius: 12,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    minWidth: 250,
+    transform: [{ scale: 1.1 }],
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+        transition: 'all 0.3s ease',
+        ':hover': {
+          transform: [{ scale: 1.15 }],
+          backgroundColor: '#45a049'
+        }
+      }
+    })
+  },
+  newDeckIcon: {
+    marginRight: 10,
+  },
+  newDeckButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
 });
 
 // UI Components
@@ -630,9 +686,9 @@ const SelectionScreen = ({
 
       if (result.success) {
         Alert.alert(t('Success!'), t('Your Anki deck has been downloaded!'));
-        onSubmit(null); // No need for download URL anymore
+        onSubmit(null);
       } else {
-        throw new Error('Failed to generate Anki deck');
+        throw new Error(t('Failed to generate deck'));
       }
     } catch (error) {
       console.error('Error creating Anki deck:', error);
@@ -699,32 +755,23 @@ const SelectionScreen = ({
   );
 };
 
-const ResultScreen = ({ downloadUrl, onReset, selectedLanguage }) => {
+const ResultScreen = ({ onReset, selectedLanguage }) => {
   const t = (text) => getTranslation(selectedLanguage, text);
 
-  const handleDownload = () => {
-    if (Platform.OS === 'web') {
-      window.open(downloadUrl, '_blank');
-    } else {
-      // Handle native download
-    }
-  };
-
   return (
-    <View style={styles.container}>
-      <Ionicons name="checkmark-circle" size={64} color="#4CAF50" />
-      <Text style={styles.title}>{t('Success!')}</Text>
-      <Text style={styles.subtitle}>{t('Your Anki deck is ready')}</Text>
+    <View style={[styles.container, styles.resultContainer]}>
+      <View style={styles.successIconContainer}>
+        <Ionicons name="checkmark-circle" size={80} color="#4CAF50" />
+      </View>
+      <Text style={[styles.title, styles.resultTitle]}>{t('Success!')}</Text>
+      <Text style={[styles.subtitle, styles.resultSubtitle]}>{t('Your Anki deck has been downloaded!')}</Text>
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={handleDownload}
+      <TouchableOpacity 
+        style={[styles.button, styles.newDeckButton]} 
+        onPress={onReset}
       >
-        <Text style={styles.buttonText}>{t('Download Anki deck')}</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.secondaryButton} onPress={onReset}>
-        <Text style={styles.secondaryButtonText}>{t('Create new deck')}</Text>
+        <Ionicons name="add-circle-outline" size={24} color="white" style={styles.newDeckIcon} />
+        <Text style={[styles.buttonText, styles.newDeckButtonText]}>{t('Create new deck')}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -780,7 +827,7 @@ const RootApp = () => {
       }
     } catch (error) {
       console.error('Error taking photo:', error);
-      Alert.alert('Error', 'Could not take photo. Please try again.');
+      Alert.alert(t('Error'), t('Could not take photo'));
     }
   };
 
@@ -796,13 +843,13 @@ const RootApp = () => {
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-      Alert.alert('Error', 'Could not upload image. Please try again.');
+      Alert.alert(t('Error'), t('Could not upload image'));
     }
   };
 
   const processImage = async (uri) => {
     try {
-      setProcessing('Processing image...');
+      setProcessing(t('Processing image...'));
       
       // Convert image to base64
       const base64Image = await imageToBase64(uri);
@@ -822,7 +869,7 @@ const RootApp = () => {
       }
     } catch (error) {
       console.error('Error processing image:', error);
-      Alert.alert('Error', 'The image could not be processed. Please try again.');
+      Alert.alert(t('Error'), t('Image processing failed'));
       setProcessing('');
     }
   };
@@ -846,6 +893,14 @@ const RootApp = () => {
   const handleDeckTypeSelection = async (type, content) => {
     setProcessing('Generating cards...');
     try {
+      // First, get a meaningful deck name from Gemini
+      const deckNamePrompt = `Based on this text content, suggest a short, meaningful deck name (max 3-4 words) in ${selectedLanguage.name}. The name should reflect the main topic or theme. Return ONLY the name, nothing else:
+
+${content.substring(0, 500)}...`;  // Only send first 500 chars for deck name generation
+
+      const suggestedDeckName = await sendRequestToFlashExp(deckNamePrompt);
+      setDeckName(suggestedDeckName.trim());
+
       if (type === 'vocabulary') {
         const prompt = `Extract vocabulary words from this text and translate them to ${selectedLanguage.name}. Return ONLY a simple list where each line contains the word in the original language, followed by a semicolon, and then the word in ${selectedLanguage.name}. Example format:
 original_word;translated_word
@@ -967,7 +1022,7 @@ ${content}`;
         />
       );
     case 'result':
-      return <ResultScreen downloadUrl={downloadUrl} onReset={resetApp} selectedLanguage={selectedLanguage} />;
+      return <ResultScreen onReset={resetApp} selectedLanguage={selectedLanguage} />;
     case 'deckType':
       return (
         <DeckTypeScreen
