@@ -2,14 +2,15 @@
 const languageData = [
   { code: 'am', name: 'አማርኛ', englishName: 'Amharic', flag: '🇪🇹' },
   { code: 'ar', name: 'العربية', englishName: 'Arabic', flag: '🇸🇦' },
+  { code: 'zh', name: '中文', englishName: 'Chinese', flag: '🇨🇳' },
+  { code: 'fa-AF', name: 'دری', englishName: 'Dari', flag: '🇦🇫' },
   { code: 'de', name: 'Deutsch', englishName: 'German', flag: '🇩🇪' },
   { code: 'en', name: 'English', englishName: 'English', flag: '🇬🇧' },
   { code: 'es', name: 'Español', englishName: 'Spanish', flag: '🇪🇸' },
-  { code: 'fa-AF', name: 'دری', englishName: 'Dari', flag: '🇦🇫' },
   { code: 'fr', name: 'Français', englishName: 'French', flag: '🇫🇷' },
+  { code: 'ka', name: 'ქართული', englishName: 'Georgian', flag: '🇬🇪' },
   { code: 'hi', name: 'हिन्दी', englishName: 'Hindi', flag: '🇮🇳' },
   { code: 'it', name: 'Italiano', englishName: 'Italian', flag: '🇮🇹' },
-  { code: 'ka', name: 'ქართული', englishName: 'Georgian', flag: '🇬🇪' },
   { code: 'ku', name: 'Kurdî', englishName: 'Kurdish', flag: '🟢🔴🟡' },
   { code: 'pt', name: 'Português', englishName: 'Portuguese', flag: '🇵🇹' },
   { code: 'so', name: 'Soomaali', englishName: 'Somali', flag: '🇸🇴' },
@@ -17,7 +18,6 @@ const languageData = [
   { code: 'tr', name: 'Türkçe', englishName: 'Turkish', flag: '🇹🇷' },
   { code: 'uk', name: 'Українська', englishName: 'Ukrainian', flag: '🇺🇦' },
   { code: 'yi', name: 'ئێزیدی', englishName: 'Yezidi', flag: '🔴' },
-  { code: 'zh', name: '中文', englishName: 'Chinese', flag: '🇨🇳' },
 ];
 
 // Export sorted languages based on English names
