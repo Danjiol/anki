@@ -539,7 +539,6 @@ export const translations = {
     'Original': 'اصلی',
     'Error': 'خطا',
     'Please select at least one word.': 'لطفاً حداقل یک کلمه را انتخاب کنید.',
-    'Generating Anki deck...': 'در حال ایجاد دسته Anki...',
     'Your Anki deck has been downloaded!': 'دسته Anki شما دانلود شد!',
     'Download Anki deck': 'دانلود دسته Anki',
     'Back': 'برگشت',
@@ -561,6 +560,7 @@ export const translations = {
     'Network error': 'خطای شبکه: لطفاً بعداً دوباره تلاش کنید.',
     'No server response': 'پاسخی از سرور دریافت نشد. لطفاً بعداً دوباره تلاش کنید.',
     'Failed to generate deck': 'ایجاد دسته Anki ناموفق بود',
+    'Generating Anki deck...': 'در حال ایجاد دسته Anki...',
   },
   ka: {
     'Vocabulary Card Creator': 'სიტყვების ბარათების შემქმნელი',
@@ -592,6 +592,7 @@ export const translations = {
     'Network error': 'ქსელის შეცდომა: გთხოვთ სცადოთ მოგვიანებით.',
     'No server response': 'სერვერიდან პასუხი არ მიღებულა. გთხოვთ სცადოთ მოგვიანებით.',
     'Failed to generate deck': 'Anki დასტის შექმნა ვერ მოხერხდა',
+    'Generating Anki deck...': 'Anki-ის დასტის შექმნა...',
   },
   ku: {
     'Vocabulary Card Creator': 'Çêkerê Kartên Peyvan',
