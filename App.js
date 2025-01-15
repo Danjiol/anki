@@ -248,11 +248,6 @@ const translations = {
     'Download .apkg file': 'Download .apkg file',
     'Create new deck': 'Create new deck',
     'Take Photo': 'Take Photo',
-    'Choose Deck Type': 'Choose Deck Type',
-    'What type of cards do you want to create?': 'What type of cards do you want to create?',
-    'Vocabulary Cards': 'Vocabulary Cards',
-    'Q&A Cards': 'Q&A Cards',
-    // Add more translations as needed
   },
   de: {
     'Vocabulary Card Creator': 'Vokabelkarten-Ersteller',
@@ -270,15 +265,6 @@ const translations = {
     'Download .apkg file': '.apkg-Datei herunterladen',
     'Create new deck': 'Neues Deck erstellen',
     'Take Photo': 'Foto aufnehmen',
-    'Q&A Mode': 'Frage & Antwort Modus',
-    'Ask a Question': 'Stelle eine Frage',
-    'Type your question here...': 'Gib deine Frage hier ein...',
-    'Ask': 'Fragen',
-    'Choose Deck Type': 'Wähle Kartentyp',
-    'What type of cards do you want to create?': 'Welche Art von Karten möchtest du erstellen?',
-    'Vocabulary Cards': 'Vokabelkarten',
-    'Q&A Cards': 'Frage-Antwort-Karten',
-    // Add more translations as needed
   },
 };
 
@@ -570,7 +556,7 @@ const LanguageScreen = ({ onSelectLanguage, selectedLanguage }) => {
   );
 };
 
-const InputScreen = ({ onImageUpload, onTakePhoto, onTextInput, onQAMode, selectedLanguage }) => {
+const InputScreen = ({ onImageUpload, onTakePhoto, onTextInput, selectedLanguage }) => {
   const t = (text) =>
     translations[selectedLanguage?.code || 'en']?.[text] || text;
   return (
@@ -587,10 +573,6 @@ const InputScreen = ({ onImageUpload, onTakePhoto, onTextInput, onQAMode, select
       <TouchableOpacity style={styles.inputButton} onPress={onTextInput}>
         <Ionicons name="create" size={24} color="white" />
         <Text style={styles.buttonText}>{t('Enter Text')}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.inputButton} onPress={onQAMode}>
-        <Ionicons name="chatbubbles" size={24} color="white" />
-        <Text style={styles.buttonText}>{t('Q&A Mode')}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -813,63 +795,6 @@ const ResultScreen = ({ downloadUrl, onReset, selectedLanguage }) => {
   );
 };
 
-const QAScreen = ({ selectedLanguage }) => {
-  const [question, setQuestion] = useState('');
-  const [answer, setAnswer] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-
-  const t = (text) =>
-    translations[selectedLanguage?.code || 'en']?.[text] || text;
-
-  const handleAsk = async () => {
-    if (!question.trim()) {
-      Alert.alert('Error', 'Please enter a question');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const response = await askLLM({
-        prompt: question,
-        useWebSearch: false,
-      });
-      setAnswer(response);
-    } catch (error) {
-      Alert.alert('Error', error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{t('Ask a Question')}</Text>
-      <TextInput
-        style={[styles.textInput, { height: 100 }]}
-        multiline
-        placeholder={t('Type your question here...')}
-        value={question}
-        onChangeText={setQuestion}
-      />
-      <TouchableOpacity 
-        style={[styles.button, isLoading && styles.buttonDisabled]}
-        onPress={handleAsk}
-        disabled={isLoading}
-      >
-        <Text style={styles.buttonText}>
-          {isLoading ? '...' : t('Ask')}
-        </Text>
-      </TouchableOpacity>
-      
-      {answer && (
-        <ScrollView style={{ marginTop: 20, flex: 1 }}>
-          <Text style={styles.answer}>{answer}</Text>
-        </ScrollView>
-      )}
-    </View>
-  );
-};
-
 const DeckTypeScreen = ({ onSelectType, content, selectedLanguage }) => {
   const t = (text) =>
     translations[selectedLanguage?.code || 'en']?.[text] || text;
@@ -971,8 +896,8 @@ const RootApp = () => {
   const handleTextProcessing = async (text) => {
     try {
       setProcessing('Processing text...');
-      setInputText(text); // Store the processed text
-      setStep('deckType'); // Go to deck type selection instead of directly to selection
+      setInputText(text);
+      setStep('deckType'); // Go to deck type selection
     } catch (error) {
       console.error('Error processing text:', error);
       Alert.alert(
@@ -988,7 +913,6 @@ const RootApp = () => {
     setProcessing('Generating cards...');
     try {
       if (type === 'vocabulary') {
-        // Existing vocabulary processing
         const prompt = `Extract vocabulary words from this text and translate them to ${selectedLanguage.name}. Return ONLY a simple list where each line contains the word in the original language, followed by a semicolon, and then the word in ${selectedLanguage.name}. Example format:
 original_word;translated_word
 
@@ -1008,7 +932,6 @@ ${content}`;
         setExtractedWords(words);
         setStep('selection');
       } else if (type === 'qa') {
-        // Angepasster Prompt für alle Sprachen
         const prompt = `You are an expert in creating Anki flashcards. Create question-answer pairs from the following text.
         The text is in the original language. Create questions and answers in the original language, 
         and add ${selectedLanguage.name} translations in parentheses.
@@ -1031,11 +954,7 @@ ${content}`;
         Text to process:
         ${content}`;
 
-        const response = await askLLM({
-          prompt: prompt,
-          useWebSearch: false,
-        });
-
+        const response = await sendRequestToFlashExp(prompt);
         const pairs = response
           .split('\n\n')
           .filter(Boolean)
@@ -1087,7 +1006,6 @@ ${content}`;
           onImageUpload={handleImageUpload}
           onTakePhoto={handleTakePhoto}
           onTextInput={() => setStep('text')}
-          onQAMode={() => setStep('qa')}
           selectedLanguage={selectedLanguage}
         />
       );
@@ -1116,8 +1034,6 @@ ${content}`;
       );
     case 'result':
       return <ResultScreen downloadUrl={downloadUrl} onReset={resetApp} selectedLanguage={selectedLanguage} />;
-    case 'qa':
-      return <QAScreen selectedLanguage={selectedLanguage} />;
     case 'deckType':
       return (
         <DeckTypeScreen
