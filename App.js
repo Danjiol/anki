@@ -902,8 +902,20 @@ ${content.substring(0, 500)}...`;  // Only send first 500 chars for deck name ge
       setDeckName(suggestedDeckName.trim());
 
       if (type === 'vocabulary') {
-        const prompt = `Extract vocabulary words from this text and translate them to ${selectedLanguage.name}. Return ONLY a simple list where each line contains the word in the original language, followed by a semicolon, and then the word in ${selectedLanguage.name}. Example format:
-original_word;translated_word
+        const prompt = `Extract vocabulary words from this text and translate them to ${selectedLanguage.name}. For each word:
+1. Convert it to its base/dictionary form (lemma). For example:
+   - German "gemeinsamen" or "gemeinsames" → "gemeinsam"
+   - German "gehst", "ging", "gegangen" → "gehen"
+   - English "running", "ran" → "run"
+2. Keep the original word in parentheses if it differs from the base form.
+
+Return ONLY a simple list where each line follows this format:
+base_form (original_form);translated_word
+
+If the word is already in its base form, omit the parentheses.
+Example format:
+gemeinsam (gemeinsamen);common
+Haus;house
 
 Here is the text:
 ${content}`;
@@ -914,8 +926,18 @@ ${content}`;
           .map((w) => w.trim())
           .filter(Boolean)
           .map((line) => {
-            const [original, translated] = line.split(';').map((w) => w.trim());
-            return { original, translated };
+            const [original, translated] = line.split(';').map(w => w.trim());
+            // Extract base form and original form if present
+            const match = original.match(/^(.*?)(?:\s*\((.*?)\))?$/);
+            if (match) {
+              const [_, baseForm, originalForm] = match;
+              return {
+                original: originalForm || baseForm, // Use original form if available, otherwise base form
+                translated: translated,
+                baseForm: baseForm // Store base form for reference
+              };
+            }
+            return { original, translated }; // Fallback
           });
 
         setExtractedWords(words);
