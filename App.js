@@ -855,6 +855,9 @@ const RootApp = () => {
   const [deckName, setDeckName] = useState('');
   const [inputText, setInputText] = useState('');
 
+  // Define translation function at the component level
+  const t = (text) => getTranslation(selectedLanguage, text);
+
   const handleTakePhoto = async () => {
     try {
       const result = await ImagePicker.launchCameraAsync({
