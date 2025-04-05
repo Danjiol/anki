@@ -45,7 +45,14 @@ const imageToBase64 = async (uri) => {
 // Function to interact with Gemini
 const askLLM = async ({ prompt, base64Image, jsonMode = false, useWebSearch = false }) => {
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
-  const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`;
+  
+  // Check if API key is available
+  if (!GEMINI_API_KEY) {
+    console.error("Gemini API key is missing. Please set the GEMINI_API_KEY environment variable.");
+    throw new Error("API key configuration error. Please contact support.");
+  }
+  
+  const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
   try {
     let contents = [{
