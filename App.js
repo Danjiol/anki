@@ -20,38 +20,61 @@ import { languages, translations, getTranslation } from './translations';
 // Utility function to convert image to Base64
 const imageToBase64 = async (uri) => {
   try {
+    console.log('imageToBase64: Starting conversion for URI:', uri);
     const response = await fetch(uri);
+    console.log('imageToBase64: Fetch response status:', response.status);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+    }
+    
     const blob = await response.blob();
+    console.log('imageToBase64: Blob created, size:', blob.size, 'type:', blob.type);
+    
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        const result = reader.result;
-        if (typeof result === 'string') {
-          const base64Data = result.split(',')[1]; // Remove the Data-URL prefix
-          resolve(base64Data);
-        } else {
-          reject(new Error('Failed to read file as base64 string.'));
+        try {
+          console.log('imageToBase64: FileReader completed');
+          const result = reader.result;
+          if (typeof result === 'string') {
+            const base64Data = result.split(',')[1]; // Remove the Data-URL prefix
+            console.log('imageToBase64: Successfully converted to base64, length:', base64Data.length);
+            resolve(base64Data);
+          } else {
+            console.error('imageToBase64: FileReader result is not a string:', typeof result);
+            reject(new Error('Failed to read file as base64 string: result is not a string'));
+          }
+        } catch (error) {
+          console.error('imageToBase64: Error in onloadend callback:', error);
+          reject(error);
         }
       };
-      reader.onerror = (error) => reject(error);
+      reader.onerror = (error) => {
+        console.error('imageToBase64: FileReader error:', error);
+        reject(error);
+      };
+      console.log('imageToBase64: Starting FileReader.readAsDataURL');
       reader.readAsDataURL(blob);
     });
   } catch (error) {
-    console.error('Error converting image to Base64:', error);
+    console.error('imageToBase64: Error converting image to Base64:', error);
+    console.error('imageToBase64: Error details:', error.name, error.message, error.stack);
     throw error;
   }
 };
 
 // Function to interact with Gemini
 const askLLM = async ({ prompt, base64Image, jsonMode = false, useWebSearch = false }) => {
-  const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
+  console.log('Using GEMINI_API_KEY:', GEMINI_API_KEY ? 'API key is set' : 'API key is not set');
   
   // Check if API key is available
   if (!GEMINI_API_KEY) {
-    console.error("Gemini API key is missing. Please set the GEMINI_API_KEY environment variable.");
+    console.error("Gemini API key is missing. Please check your environment configuration.");
     throw new Error("API key configuration error. Please contact support.");
   }
   
+  console.log('Preparing Gemini API request, image included:', !!base64Image);
   const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
   try {
@@ -60,6 +83,7 @@ const askLLM = async ({ prompt, base64Image, jsonMode = false, useWebSearch = fa
     }];
 
     if (base64Image) {
+      console.log('Adding image to request, base64 length:', base64Image.length);
       contents[0].parts.push({
         inlineData: {
           mimeType: "image/jpeg",
@@ -68,6 +92,7 @@ const askLLM = async ({ prompt, base64Image, jsonMode = false, useWebSearch = fa
       });
     }
 
+    console.log('Sending request to Gemini API');
     const response = await fetch(GEMINI_URL, {
       method: 'POST',
       headers: {
@@ -76,21 +101,29 @@ const askLLM = async ({ prompt, base64Image, jsonMode = false, useWebSearch = fa
       body: JSON.stringify({ contents }),
     });
 
+    console.log('Received response from Gemini API, status:', response.status);
     const data = await response.json();
+    console.log('Parsed JSON response:', JSON.stringify(data, null, 2).substring(0, 500) + '...');
 
     if (!response.ok) {
-      throw new Error(data.error?.message || 'Failed to get response from Gemini');
+      const errorMessage = data.error?.message || 'Failed to get response from Gemini';
+      console.error('Gemini API error:', errorMessage);
+      console.error('Full error details:', JSON.stringify(data.error || {}, null, 2));
+      throw new Error(errorMessage);
     }
 
     const result = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!result) {
+      console.error('No text result in response from Gemini API');
+      console.error('Response structure:', JSON.stringify(data, null, 2));
       throw new Error('No response from Gemini.');
     }
 
     return result;
   } catch (error) {
     console.error('Error in askLLM:', error);
-    throw new Error('Failed to get a response from Gemini.');
+    console.error('Error details:', error.name, error.message, error.stack);
+    throw new Error('Failed to get a response from Gemini. Please try again later.');
   }
 };
 
@@ -840,38 +873,50 @@ const RootApp = () => {
 
   const handleImageUpload = async () => {
     try {
+      console.log('Starting image upload process');
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         quality: 0.8,
       });
 
+      console.log('Image picker result:', result);
       if (!result.canceled && result.assets && result.assets[0]) {
+        console.log('Image selected, processing image with URI:', result.assets[0].uri);
         await processImage(result.assets[0].uri);
+      } else {
+        console.log('Image selection was canceled or no asset was returned');
       }
     } catch (error) {
-      console.error('Error uploading image:', error);
+      console.error('Error in handleImageUpload:', error);
       Alert.alert(t('Error'), t('Could not upload image'));
     }
   };
 
   const processImage = async (uri) => {
     try {
+      console.log('Processing image started with URI:', uri);
       setProcessing(t('Processing image...'));
       
       // Convert image to base64
+      console.log('Converting image to base64');
       const base64Image = await imageToBase64(uri);
+      console.log('Base64 conversion successful, length:', base64Image?.length);
       
+      console.log('Sending image to Gemini API');
       const response = await askLLM({
         prompt: `Please analyze this image and extract any text or words you can find. Format the output as a simple list of words.`,
         base64Image,
         useWebSearch: false,
       });
 
+      console.log('Received response from Gemini:', response ? 'Response received' : 'No response');
       if (response) {
         setInputText(response);
         setProcessing('');
+        console.log('Processing image complete, moving to text processing');
         handleTextProcessing(response);
       } else {
+        console.log('No response from Gemini API');
         throw new Error('Invalid API response');
       }
     } catch (error) {
